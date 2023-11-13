@@ -1,11 +1,5 @@
-interface BinaryTree<Value, Left, Right> {
-   value: Value
-   left: Left
-   right: Right
-}
-
 // Create a tree for testing:
-type TestTree = BinaryTree<1, BinaryTree<7, 2, BinaryTree<6, 5, 11>>, BinaryTree<9, null, BinaryTree<9, 5, null>>>
+type TestTree = BinaryTree.New<1, BinaryTree.New<7, 2, BinaryTree.New<6, 5, 11>>, BinaryTree.New<9, null, BinaryTree.New<9, 5, null>>>
 // Result: {
 //    value: 1;
 //    left: {
@@ -21,7 +15,7 @@ type TestTree = BinaryTree<1, BinaryTree<7, 2, BinaryTree<6, 5, 11>>, BinaryTree
 // }
 
 // Test the reverse operation:
-type TestTreeReversed = BinaryTreeReverse<TestTree>
+type TestTreeReversed = BinaryTree.Reverse<TestTree>
 // Result: {
 //    value: 1;
 //    left: {
@@ -37,11 +31,11 @@ type TestTreeReversed = BinaryTreeReverse<TestTree>
 // }
 
 // Test depth-first search by finding all values present between 0 and 15:
-type TestCasesDFS = RunTestsDFS<TestTree, 15>
+type TestCasesDFS = TestHelpers.DFS.RunTests<TestTree, 15>
 // -> "1" | "2" | "5" | "6" | "7" | "9" | "11"
 
 // Test set operation by replacing a part of the tree:
-type TestTreeAfterSet = BinaryTreeSet<TestTree, L<R<BinaryTree<'A', 'B', 'C'>>>>
+type TestTreeAfterSet = BinaryTree.Set<TestTree, BinaryTree.L<BinaryTree.R<BinaryTree.New<'A', 'B', 'C'>>>>
 // Result: {
 //    value: 1;
 //    left: {
@@ -57,61 +51,79 @@ type TestTreeAfterSet = BinaryTreeSet<TestTree, L<R<BinaryTree<'A', 'B', 'C'>>>>
 // }
 
 
-///////////////////////
-// Reverse operation //
-///////////////////////
+namespace BinaryTree {
+    interface BinaryTree<Value, Left, Right> {
+        value: Value
+        left: Left
+        right: Right
+    }
 
-type BinaryTreeReverse<T> =
-   T extends BinaryTree<infer Value, infer Left, infer Right>
-       ? { value: Value, left: BinaryTreeReverse<Right>, right: BinaryTreeReverse<Left> }
-       : T
+    export type New<V, L, R> = BinaryTree<V, L, R>
+    export type Any = BinaryTree<any, any, any>
 
+    ///////////////////////
+    // Reverse operation //
+    ///////////////////////
 
-////////////////////////
-// Depth-first search //
-////////////////////////
-
-type BinaryTreeDFS<T, V> =
-   T extends BinaryTree<infer Value, infer Left, infer Right>
-       ? Value extends V
-           ? true
-           : BinaryTreeDFS<Left, V> extends true
-               ? true
-               : BinaryTreeDFS<Right, V>
-       : T extends V
-           ? true
-           : false
-
-type RecurseTestCasesDFS<T extends BinaryTree<any, any, any>, N extends number, R extends boolean[] = []> =
-   R extends { length: infer Length }
-       ? Length extends N
-           ? R
-           : RecurseTestCasesDFS<T, N, [...R, BinaryTreeDFS<T, Length>]>
-       : never
-
-type Keys<T> = keyof { [K in keyof T as Exclude<K, T[K] extends true ? never : K>]: never }
-type RunTestsDFS<T extends BinaryTree<any, any, any>, N extends number> = Keys<RecurseTestCasesDFS<T, N>>
+    export type Reverse<T> =
+        T extends BinaryTree<infer Value, infer Left, infer Right>
+            ? { value: Value, left: Reverse<Right>, right: Reverse<Left> }
+            : T
 
 
-///////////////////
-// Set operation //
-///////////////////
+    ////////////////////////
+    // Depth-first search //
+    ////////////////////////
 
-type Traversal = Traverse<any> | BinaryTree<any, any, any>
+    export type DFS<T, V> =
+        T extends BinaryTree<infer Value, infer Left, infer Right>
+            ? Value extends V
+                ? true
+                : DFS<Left, V> extends true
+                    ? true
+                    : DFS<Right, V>
+            : T extends V
+                ? true
+                : false
 
-interface Traverse<T extends Traversal> {
-    traverse: string
-    next: T
+
+    ///////////////////
+    // Set operation //
+    ///////////////////
+
+    type Traversal = Traverse<any> | BinaryTree.Any
+
+    interface Traverse<T extends Traversal> {
+        traverse: string
+        next: T
+    }
+
+    export interface L<T extends Traversal> extends Traverse<T> { traverse: 'left' }
+    export interface R<T extends Traversal> extends Traverse<T> { traverse: 'right' }
+
+    export type Set<T extends BinaryTree.Any, V extends Traversal> =
+        V extends L<infer Next>
+            ? BinaryTree<T['value'], Set<T['left'], Next>, T['right']>
+            : V extends R<infer Next>
+                ? BinaryTree<T['value'], T['left'], Set<T['right'], Next>>
+                : V extends BinaryTree.Any
+                    ? V
+                    : never
 }
 
-interface L<T extends Traversal> extends Traverse<T> { traverse: 'left' }
-interface R<T extends Traversal> extends Traverse<T> { traverse: 'right' }
-
-type BinaryTreeSet<T extends BinaryTree<any, any, any>, V extends Traversal> =
-    V extends L<infer Next>
-        ? BinaryTree<T['value'], BinaryTreeSet<T['left'], Next>, T['right']>
-        : V extends R<infer Next>
-            ? BinaryTree<T['value'], T['left'], BinaryTreeSet<T['right'], Next>>
-            : V extends BinaryTree<any, any, any>
-                ? V
+namespace TestHelpers {
+    export namespace DFS {
+        type RecurseTestCases<T extends BinaryTree.Any, N extends number, R extends boolean[] = []> =
+            R extends { length: infer Length }
+                ? Length extends N
+                    ? R
+                    : RecurseTestCases<T, N, [...R, BinaryTree.DFS<T, Length>]>
                 : never
+
+        type Keys<T> = keyof {
+            [K in keyof T as Exclude<K, T[K] extends true ? never : K>]: never
+        }
+
+        export type RunTests<T extends BinaryTree.Any, N extends number> = Keys<RecurseTestCases<T, N>>
+    }
+}

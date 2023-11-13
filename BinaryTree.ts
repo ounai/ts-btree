@@ -32,7 +32,7 @@ type TestTreeReversed = BinaryTree.Reverse<TestTree>
 
 // Test depth-first search by finding all values present between 0 and 15:
 type TestCasesDFS = TestHelpers.DFS.RunTests<TestTree, 15>
-// -> "1" | "2" | "5" | "6" | "7" | "9" | "11"
+// Result: "1" | "2" | "5" | "6" | "7" | "9" | "11"
 
 // Test set operation by replacing a part of the tree:
 type TestTreeAfterSet = BinaryTree.Set<TestTree, BinaryTree.L<BinaryTree.R<BinaryTree.New<'A', 'B', 'C'>>>>
@@ -61,6 +61,7 @@ namespace BinaryTree {
     export type New<V, L, R> = BinaryTree<V, L, R>
     export type Any = BinaryTree<any, any, any>
 
+    
     ///////////////////////
     // Reverse operation //
     ///////////////////////

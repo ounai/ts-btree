@@ -61,7 +61,7 @@ namespace BinaryTree {
     export type New<V, L, R> = BinaryTree<V, L, R>
     export type Any = BinaryTree<any, any, any>
 
-    
+
     ///////////////////////
     // Reverse operation //
     ///////////////////////
@@ -122,7 +122,7 @@ namespace TestHelpers {
                 : never
 
         type Keys<T> = keyof {
-            [K in keyof T as Exclude<K, T[K] extends true ? never : K>]: never
+            [K in keyof T as T[K] extends true ? K : never]: never
         }
 
         export type RunTests<T extends BinaryTree.Any, N extends number> = Keys<RecurseTestCases<T, N>>

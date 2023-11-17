@@ -102,14 +102,16 @@ namespace BinaryTree {
     export interface L<T extends Traversal> extends Traverse<T> { traverse: 'left' }
     export interface R<T extends Traversal> extends Traverse<T> { traverse: 'right' }
 
-    export type Set<T extends BinaryTree.Any, V extends Traversal> =
-        V extends L<infer Next>
-            ? BinaryTree<T['value'], Set<T['left'], Next>, T['right']>
-            : V extends R<infer Next>
-                ? BinaryTree<T['value'], T['left'], Set<T['right'], Next>>
-                : V extends BinaryTree.Any
-                    ? V
-                    : never
+    export type Set<T extends BinaryTree.Any | null, V extends Traversal> =
+        T extends BinaryTree.Any
+            ? V extends L<infer Next>
+                ? BinaryTree<T['value'], Set<T['left'], Next>, T['right']>
+                : V extends R<infer Next>
+                    ? BinaryTree<T['value'], T['left'], Set<T['right'], Next>>
+                    : V extends BinaryTree.Any
+                        ? V
+                        : never
+            : Set<BinaryTree<T, null, null>, V>
 }
 
 namespace TestHelpers {
